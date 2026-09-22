@@ -1,32 +1,29 @@
 # PraatFigure
 
-PraatFigure создаёт публикационные фонетические иллюстрации из аудиозаписи и
-разметки Praat TextGrid. Осциллограмма, спектрограмма, аннотационные слои,
-границы выбранных сегментов, pitch и форманты собираются в одну точно
-настраиваемую фигуру.
+PraatFigure creates publication-ready phonetic figures from an audio recording
+and a Praat TextGrid. Waveforms, spectrograms, annotation tiers, selected
+boundaries, pitch, and formants are combined in one precisely configurable
+figure.
 
-## Что умеет программа
+## Features
 
-- открывать длинные аудиофайлы без загрузки всей записи в память;
-- находить интервалы TextGrid по точному совпадению, подстроке или регулярному
-  выражению;
-- строить изображение выбранного интервала или произвольного диапазона времени;
-- проецировать на осциллограмму и спектрограмму только отмеченные внутренние
-  сегменты;
-- менять порядок, название, видимость и относительную высоту каждого слоя;
-- показывать или скрывать временные деления, оси, имена tiers, границы,
-  подписи начала/конца и duration независимо друг от друга;
-- настраивать системный шрифт, размеры текста и толщину пунктирных границ;
-- показывать фигуру в режиме **Fit to window** или в физическом **Real size**;
-- экспортировать PNG, SVG и PDF с Unicode-именами файлов;
-- сохранять проекты и многократно используемые шаблоны оформления;
-- пакетно строить фигуры из командной строки.
+- Open long recordings without loading the complete file into memory.
+- Find TextGrid intervals by substring, exact match, or regular expression.
+- Render an annotated interval or an arbitrary time range.
+- Project only selected inner-segment boundaries onto waveform and spectrogram.
+- Reorder, rename, hide, and resize every track.
+- Control time ticks, axes, tier names, boundaries, endpoint labels, and duration
+  independently.
+- Select an installed system font and configure text sizes and boundary width.
+- Preview with **Fit to window** or at physical **Real size**.
+- Export Unicode-named PNG, SVG, and PDF files.
+- Save complete projects and reusable appearance templates.
+- Batch-render examples from the command line.
 
-По умолчанию осциллограмма и спектрограмма имеют относительную высоту 1,0, а
-каждый слой TextGrid — 0,5. Временной контекст слева и справа равен нулю, на
-оси времени показываются только начало и конец, а PNG является форматом
-экспорта по умолчанию.
+Waveform and spectrogram tracks default to relative height 1.0. Every TextGrid
+track defaults to 0.5. Left and right context default to zero, the time axis
+shows only its endpoints, and PNG is the default export format.
 
-Начните с разделов [Установка](installation.md) и
-[Быстрый старт](quickstart.md).
+Continue with [Installation](installation.md) and the
+[Quick start](quickstart.md).
 

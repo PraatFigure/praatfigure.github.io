@@ -1,9 +1,8 @@
-# Решение проблем
+# Troubleshooting
 
 ## `DLL load failed while importing QtCore`
 
-Создайте чистое локальное виртуальное окружение и запускайте программу через
-него:
+Create a clean project-local environment and run PraatFigure from it:
 
 ```powershell
 python -m venv .venv
@@ -11,26 +10,26 @@ python -m venv .venv
 .\run_praatfigure.ps1
 ```
 
-Закройте активные окружения Conda перед запуском. Готовый Windows-установщик
-уже содержит согласованную версию Qt и не требует системного Python.
+Deactivate Conda before launching the app. The ready-made Windows installer
+contains a matching Qt runtime and does not require a system Python installation.
 
-## Большой аудиофайл долго открывается
+## A large audio file takes too long to open
 
-PraatFigure сначала читает только метаданные, а затем загружает выбранный
-фрагмент. Сначала откройте TextGrid и выберите короткую аннотацию. До выбора
-программа ограничивает первый предпросмотр десятью секундами.
+PraatFigure initially reads only metadata and later loads the selected region.
+Open the TextGrid and choose a short annotation first. Before a selection is
+made, the initial preview is limited to ten seconds.
 
-## После экспорта предпросмотр не обновляется
+## Preview stops updating after export
 
-Экспорт строится в независимой фигуре и не должен закрывать live-preview.
-Если проблема повторяется, сохраните проект и приложите `.praatfig.json`, версию
-ОС и шаги воспроизведения к issue на GitHub.
+Export is rendered in an independent figure and should not close the live
+preview. If the issue recurs, save the project and attach its `.praatfig.json`,
+operating-system version, and reproduction steps to a GitHub issue.
 
-## Приложение не запускается после скачивания
+## A downloaded application does not start
 
-Убедитесь, что файл получен со страницы Releases. Неподписанные сборки могут
-останавливать SmartScreen или Gatekeeper; способы первого запуска описаны в
-[Установке](installation.md). Если система сообщает об отсутствующей библиотеке,
-используйте установщик/AppImage, а не отдельный исполняемый файл из папки
-PyInstaller.
+Verify that the file came from the official Releases page. Unsigned packages
+may be stopped by SmartScreen or Gatekeeper; see [Installation](installation.md)
+for first-launch guidance. If a library is reported missing, use the complete
+installer or AppImage rather than copying a single executable from a PyInstaller
+folder.
 

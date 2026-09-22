@@ -1,31 +1,31 @@
-# Экспорт, шаблоны и проекты
+# Export, templates, and projects
 
-## Экспорт
+## Export
 
-Диалог **Export…** позволяет выбрать:
+The **Export…** dialog provides:
 
-- папку и имя файла;
-- PNG, SVG или PDF;
-- DPI;
-- прозрачный фон PNG.
+- output folder and filename;
+- PNG, SVG, or PDF format;
+- output DPI;
+- transparent PNG background.
 
-PNG выбран по умолчанию. Если view построен из аннотации, имя начинается с её
-Unicode-метки. Для ручного диапазона используется абсолютный интервал времени.
-Существующий файл не перезаписывается без явного подтверждения.
+PNG is selected by default. For an annotation-based view, the default filename
+starts with its Unicode label. A manual view uses its absolute time range.
+Existing files are not overwritten without confirmation.
 
-Для статей удобны SVG/PDF: текст и линии остаются векторными. PNG подходит для
-презентаций, сайтов и приложений, не поддерживающих векторный формат.
+SVG and PDF are ideal for publications because text and lines remain vector
+elements. PNG is convenient for slides, websites, and software that does not
+support vector graphics.
 
-## Шаблоны
+## Templates
 
-Меню **Templates → Save settings template…** сохраняет оформление: слои,
-порядок, высоты, подписи, шрифты и параметры анализа. Текущий аудиофайл и
-временной выбор в шаблон не входят. Поэтому один стиль можно применять к разным
-примерам.
+**Templates → Save settings template…** stores appearance, tracks, order,
+heights, labels, fonts, and analysis parameters. It does not store the current
+audio file or time selection, so one style can be reused across examples.
 
-## Проекты
+## Projects
 
-Файл `.praatfig.json` сохраняет пути к аудио/TextGrid, текущий выбор и полную
-спецификацию фигуры. Это формат воспроизводимой рабочей сессии; перенос проекта
-на другой компьютер может потребовать исправления путей к исходным файлам.
+A `.praatfig.json` project stores audio and TextGrid paths, the current
+selection, and the complete figure specification. Moving a project to another
+computer may require updating its source-file paths.
 

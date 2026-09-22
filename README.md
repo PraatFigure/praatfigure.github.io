@@ -4,7 +4,7 @@ PraatFigure turns an audio file plus a Praat TextGrid selection into a consisten
 publication-ready SVG, PDF, or PNG. The same declarative `FigureSpec` drives the
 renderer, command-line interface, and desktop preview.
 
-Full Russian-language documentation is maintained in [`docs/`](docs/index.md)
+Full English-language documentation is maintained in [`docs/`](docs/index.md)
 and published at [praatfigure.github.io](https://praatfigure.github.io/).
 
 ## Download

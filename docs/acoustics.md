@@ -1,24 +1,23 @@
-# Акустический анализ
+# Acoustic analysis
 
-## Осциллограмма
+## Waveform
 
-Стереофайл по умолчанию показывается отдельной линией для каждого канала.
-Осциллограмма сохраняет общую временную ось со всеми остальными слоями.
+Stereo audio is shown as a separate trace for each channel by default. The
+waveform shares its time axis with every other track.
 
-## Спектрограмма
+## Spectrogram
 
-Используется широкополосная спектрограмма с Praat-совместимым вычислением при
-наличии Parselmouth. По умолчанию показаны частотные деления в герцах. Все
-растровые данные спектрограммы экспортируются с заданным DPI, а в SVG/PDF
-текст, рамки и линии остаются векторными.
+PraatFigure uses a broadband spectrogram and Praat-compatible computation when
+Parselmouth is available. Frequency ticks in hertz are shown by default.
+Spectrogram pixels use the selected DPI, while text, frames, and lines remain
+vector elements in SVG and PDF exports.
 
-## Pitch и форманты
+## Pitch and formants
 
-Переключатели **Pitch** и **Formants** добавляют результаты анализа поверх
-спектрограммы. Размер точек и линий выражен в физических единицах Matplotlib,
-поэтому он остаётся пропорциональным шрифту при Fit to window и Real size.
+**Pitch** and **Formants** add analysis results over the spectrogram. Marker and
+line sizes use physical Matplotlib units, so their proportions remain consistent
+in Fit to window, Real size, and exported figures.
 
-Анализ выполняется только для показанного временного окна и кэшируется. Это
-позволяет работать с длинными записями без чтения всего файла при каждом
-изменении оформления.
+Analysis is limited to the displayed time window and cached. This keeps long
+recordings responsive without reading the entire file after every style change.
 

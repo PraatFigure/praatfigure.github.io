@@ -1,5 +1,5 @@
 site_name: PraatFigure
-site_description: Создание публикационных фонетических иллюстраций из аудио и Praat TextGrid
+site_description: Publication-ready phonetic figures from audio and Praat TextGrid files
 site_url: https://praatfigure.github.io/
 repo_url: https://github.com/PraatFigure/praatfigure.github.io
 repo_name: PraatFigure/praatfigure.github.io
@@ -8,20 +8,20 @@ site_dir: site
 docs_dir: docs
 theme:
   name: mkdocs
-  language: ru
+  language: en
   navigation_depth: 3
 nav:
-  - Главная: index.md
-  - Установка: installation.md
-  - Быстрый старт: quickstart.md
-  - Интерфейс: interface.md
-  - Выбор фрагмента: selection.md
-  - Слои и оформление: tracks.md
-  - Акустический анализ: acoustics.md
-  - Экспорт, шаблоны и проекты: export.md
-  - Командная строка: cli.md
-  - Сборка и публикация: development.md
-  - Решение проблем: troubleshooting.md
+  - Home: index.md
+  - Installation: installation.md
+  - Quick start: quickstart.md
+  - Interface: interface.md
+  - Selecting a region: selection.md
+  - Tracks and appearance: tracks.md
+  - Acoustic analysis: acoustics.md
+  - Export, templates, and projects: export.md
+  - Command line: cli.md
+  - Building and publishing: development.md
+  - Troubleshooting: troubleshooting.md
 extra_css:
   - stylesheets/extra.css
 markdown_extensions:

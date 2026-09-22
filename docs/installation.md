@@ -1,43 +1,44 @@
-# Установка
+# Installation
 
-## Готовые приложения
+## Ready-to-use applications
 
-Откройте страницу **Releases** репозитория и скачайте файл для своей системы.
+Open the repository's **Releases** page and download the package for your
+operating system.
 
 ### Windows
 
-Запустите `PraatFigure-…-Windows-x64-Setup.exe`. Установщик добавляет программу
-в меню «Пуск» и по желанию создаёт ярлык на рабочем столе.
+Run `PraatFigure-…-Windows-x64-Setup.exe`. The installer adds PraatFigure to the
+Start menu and can create a desktop shortcut.
 
-Текущие автоматические сборки не подписаны коммерческим сертификатом. Поэтому
-Windows SmartScreen может показать предупреждение для новой версии. Проверяйте,
-что файл скачан именно со страницы Releases проекта.
+Automated builds are currently unsigned. Windows SmartScreen may therefore
+display a warning for a new version. Verify that the file came from the
+official PraatFigure Releases page.
 
 ### macOS
 
-Откройте DMG для своей архитектуры и перенесите PraatFigure в Applications:
+Open the DMG for your architecture and move PraatFigure to Applications:
 
-- `macOS-arm64` — Apple Silicon (M1 и новее);
-- `macOS-x86_64` — компьютеры Mac с Intel.
+- `macOS-arm64` for Apple Silicon (M1 or newer);
+- `macOS-x86_64` for Intel Macs.
 
-Пока приложение не нотаризовано Apple, первый запуск может потребовать
-разрешения в **System Settings → Privacy & Security**.
+The app is not yet notarized by Apple. Its first launch may require approval in
+**System Settings → Privacy & Security**.
 
 ### Linux
 
-Сделайте AppImage исполняемым и запустите его:
+Make the AppImage executable and run it:
 
 ```bash
 chmod +x PraatFigure-*-Linux-x86_64.AppImage
 ./PraatFigure-*-Linux-x86_64.AppImage
 ```
 
-Также в Release имеется переносимый `.tar.gz`. После распаковки запускайте
+Each release also contains a portable `.tar.gz`. Extract it and run
 `PraatFigure/PraatFigure`.
 
-## Установка из исходного кода
+## Install from source
 
-Требуется Python 3.12.
+Python 3.12 is required.
 
 ```bash
 python -m venv .venv
@@ -50,7 +51,7 @@ Windows:
 .\run_praatfigure.ps1
 ```
 
-macOS и Linux:
+macOS and Linux:
 
 ```bash
 source .venv/bin/activate
@@ -58,5 +59,6 @@ python -m pip install -e ".[all]"
 praatfigure
 ```
 
-Локальное виртуальное окружение особенно полезно в Windows: оно изолирует Qt от
-несовместимых DLL, которые могли добавить в `PATH` Conda или другие программы.
+A project-local virtual environment is especially useful on Windows because it
+isolates Qt from incompatible DLLs placed on `PATH` by Conda or other software.
+

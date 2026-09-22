@@ -1,46 +1,46 @@
-# Слои и оформление
+# Tracks and appearance
 
-## Таблица слоёв
+## Track table
 
-В таблице **Tracks** можно:
+The **Tracks** table lets you:
 
-- снять или поставить галочку видимости;
-- изменить название, которое будет напечатано на фигуре;
-- задать относительную высоту;
-- перетащить строку для изменения порядка.
+- toggle a track's visibility;
+- edit the name printed on the figure;
+- set its relative height;
+- drag rows to change their order.
 
-После изменения порядка фигура перерисовывается автоматически. Перетаскивание
-не удаляет слой: строка только перемещается в списке.
+The figure redraws immediately after reordering. Dropping one row onto another
+only changes its position; it does not remove either track.
 
-Высоты по умолчанию:
+Default heights:
 
-| Тип слоя | Высота |
+| Track type | Height |
 | --- | ---: |
-| Осциллограмма | 1,0 |
-| Спектрограмма | 1,0 |
-| Слой TextGrid | 0,5 |
+| Waveform | 1.0 |
+| Spectrogram | 1.0 |
+| TextGrid tier | 0.5 |
 
-Высота относительная: слой 1,0 вдвое выше слоя 0,5. При создании нового слоя
-TextGrid используется 0,5; ранее сохранённый проект сохраняет свои значения.
+Height is relative, so a 1.0 track is twice as tall as a 0.5 track. Newly added
+TextGrid tracks use 0.5, while saved projects retain their explicit values.
 
-## Оси и подписи
+## Axes and labels
 
-Можно независимо управлять:
+The following can be configured independently:
 
-- делениями времени: только начало/конец, автоматические или скрытые;
-- подписью `Time [s]`;
-- осью амплитуды осциллограммы;
-- делениями спектрограммы в герцах;
-- именами tiers;
-- началом и концом target над фигурой.
+- time ticks: endpoints, automatic, or hidden;
+- the `Time [s]` axis label;
+- waveform amplitude axis;
+- spectrogram frequency ticks in hertz;
+- tier names;
+- target start and end values above the figure.
 
-Правая и левая рамки каждого аннотационного слоя всегда входят в область
-рисунка. Поля пересчитываются под длинные названия слоёв.
+Annotation tracks always include their left and right frame boundaries. Figure
+margins are recalculated to accommodate long custom track names.
 
-## Шрифты и размеры
+## Fonts and sizes
 
-Список шрифтов заполняется из установленных в операционной системе семейств.
-Отдельно задаются основной размер, размер текста аннотаций и размер осей.
-Размер осевого шрифта по умолчанию — 6 pt. Экспорт использует эти значения в
-физических пунктах; предпросмотр масштабирует всю композицию целиком.
+The font picker lists families installed on the current system. Base,
+annotation, and axis text sizes are configured separately. Axis text defaults
+to 6 pt. Export uses physical point sizes, while the preview scales the complete
+composition as one unit.
 

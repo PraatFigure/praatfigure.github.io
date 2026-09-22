@@ -1,8 +1,8 @@
-# Командная строка
+# Command line
 
-После установки команда `praatfigure` без подкоманды открывает GUI.
+After installation, `praatfigure` without a subcommand opens the GUI.
 
-## Один пример
+## Render one example
 
 ```bash
 praatfigure render \
@@ -15,7 +15,7 @@ praatfigure render \
   --output figure.svg
 ```
 
-## Пакетная обработка
+## Batch rendering
 
 ```bash
 praatfigure batch \
@@ -26,13 +26,13 @@ praatfigure batch \
   --output-dir figures
 ```
 
-## Сохранённый проект
+## Render a saved project
 
 ```bash
 praatfigure render-project example.praatfig.json --output figure.pdf
 ```
 
-Добавьте `--overwrite`, если существующий выходной файл можно заменить. Полный
-актуальный список аргументов выводит `praatfigure --help` и справка конкретной
-команды, например `praatfigure render --help`.
+Add `--overwrite` when an existing output file may be replaced. Run
+`praatfigure --help` or, for example, `praatfigure render --help` for the full
+current argument list.
 

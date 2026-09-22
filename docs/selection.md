@@ -1,29 +1,27 @@
-# Выбор фрагмента и проекция границ
+# Selecting a region and projecting boundaries
 
-В PraatFigure различаются два понятия:
+PraatFigure distinguishes two concepts:
 
 **View**
-: Полный временной диапазон картинки. Он создаётся из найденной аннотации с
-  контекстом либо задаётся вручную.
+: The complete time span of the figure. It comes from an annotation plus
+  optional context, or from manually entered times.
 
 **Target**
-: Один или несколько внутренних интервалов, границы и длительности которых
-  нужно выделить внутри view.
+: One or more inner intervals whose boundaries or durations should be
+  highlighted inside the view.
 
-После выбора view список **Target boundaries inside the view** показывает
-интервалы выбранного tier, которые находятся внутри текущего окна. Галочка у
-строки добавляет интервал в targets; снятие галочки отменяет его проекцию.
+After choosing a view, **Target boundaries inside the view** lists intervals
+from the selected tier that lie inside that window. Checking a row adds the
+interval to the targets; unchecking it removes its projection.
 
-## Независимые элементы оформления
+## Independent display options
 
-- **Boundary lines** — вертикальные пунктирные границы;
-- **Label target start/end above figure** — значения времени сверху;
-- **Duration** — длительность между границами.
+- **Boundary lines** draws vertical dashed boundaries.
+- **Label target start/end above figure** prints endpoint times.
+- **Duration** prints the interval duration.
 
-Их можно включать в любой комбинации. Для очень коротких сегментов подписи
-раздвигаются, чтобы не накладываться друг на друга. Толщина пунктирной линии
-настраивается отдельно.
-
-Совпадающие границы нескольких targets объединяются с небольшим допуском, чтобы
-не рисовать одну и ту же линию несколько раз.
+These options can be used in any combination. Labels for very short targets are
+pushed apart to avoid overlap. Dashed-line width is configurable separately.
+Coincident target boundaries are merged with a small tolerance so the same line
+is not drawn repeatedly.
 

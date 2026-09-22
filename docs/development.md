@@ -1,9 +1,9 @@
-# Сборка и публикация
+# Building and publishing
 
-Документация хранится в каталоге `docs/` того же репозитория. Так изменения
-интерфейса и инструкции проходят review и выпускаются вместе с кодом.
+Documentation lives in `docs/` in the same repository as the application. This
+keeps interface changes and instructions reviewed and released together.
 
-## Локальная разработка
+## Local development
 
 ```bash
 python -m venv .venv
@@ -12,32 +12,31 @@ python -m pytest -q
 mkdocs serve
 ```
 
-## Локальная сборка приложения
+## Build a native application
 
-PyInstaller собирает приложение только для той ОС, на которой он запущен:
+PyInstaller builds for the operating system on which it is running:
 
 ```bash
 pyinstaller --noconfirm --clean packaging/PraatFigure.spec
 ```
 
-Результат появляется в `dist/`. Windows-установщик дополнительно компилируется
-Inno Setup из `packaging/windows/PraatFigure.iss`. macOS DMG и Linux AppImage
-формируются командами из workflow `Build installers`.
+The result appears in `dist/`. The Windows installer is compiled by Inno Setup
+from `packaging/windows/PraatFigure.iss`. The GitHub workflow creates macOS DMGs
+and Linux AppImage and tar packages.
 
 ## GitHub Actions
 
-- **Tests** проверяет Windows, macOS и Linux при push и pull request.
-- **Build installers** можно запустить вручную на вкладке Actions.
-- push тега `v0.1.0` запускает сборку и создаёт GitHub Release с установщиками.
-- **Documentation** собирает и публикует этот сайт при изменениях ветки `main`.
+- **Tests** checks Windows, macOS, and Linux on pushes and pull requests.
+- **Build installers** can be started manually from the Actions tab.
+- Pushing a version tag such as `v0.1.1` builds all packages and attaches them
+  to the corresponding GitHub Release.
+- **Documentation** builds and deploys this site when `main` documentation
+  changes.
 
-Для первого развёртывания Pages откройте **Settings → Pages** и выберите
-**GitHub Actions** как источник. После этого workflow не требует отдельной ветки
-`gh-pages`.
+For the first Pages deployment, open **Settings → Pages** and select
+**GitHub Actions** as the source. No separate `gh-pages` branch is required.
 
-## Первый push
-
-Если каталог ещё не является Git-репозиторием:
+## First push
 
 ```bash
 git init
@@ -48,14 +47,15 @@ git remote add origin https://github.com/USER/REPOSITORY.git
 git push -u origin main
 ```
 
-Для выпуска версии обновите номер в `pyproject.toml`, создайте и отправьте тег:
+To publish a version, update `pyproject.toml`, then create and push its tag:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
-Автоматические артефакты пока не подписываются. Для публичного выпуска без
-предупреждений ОС понадобятся Windows code-signing certificate и Apple
-Developer ID с notarization; секреты нельзя добавлять непосредственно в код.
+Automated packages are currently unsigned. Removing operating-system warnings
+requires a Windows code-signing certificate and an Apple Developer ID with
+notarization. Signing credentials must be stored as repository secrets, never
+committed to source control.
 

@@ -1,40 +1,39 @@
-# Интерфейс
+# Interface
 
-## Верхняя панель
+## Top controls
 
-- **Pitch** показывает или скрывает pitch поверх спектрограммы.
-- **Formants** показывает или скрывает точки формант.
-- **Boundary lines** управляет пунктирными границами выбранных target-сегментов.
-- **Duration** показывает длительность target-сегмента независимо от линий и
-  подписей времени.
-- **Open project…** и **Save project…** загружают и сохраняют всю рабочую сессию.
-- **Export…** открывает параметры экспорта.
+- **Pitch** toggles pitch over the spectrogram.
+- **Formants** toggles formant points.
+- **Boundary lines** controls dashed target boundaries.
+- **Duration** shows target duration independently from boundary lines and time
+  labels.
+- **Open project…** and **Save project…** restore or save a complete session.
+- **Export…** opens the export settings.
 
-Осциллограмма и спектрограмма управляются только в таблице слоёв, поэтому
-дублирующих переключателей Wave/Spec на верхней панели нет.
+Waveform and spectrogram visibility is controlled only in the track table, so
+there are no duplicate Wave or Spec switches in the top bar.
 
-## Поиск аннотаций
+## Annotation search
 
-Таблица показывает номер, метку, начало, конец и длительность интервала.
-Доступны режимы поиска **contains**, **exact** и **regex**. Таблица растягивается
-по высоте вместе с панелью и рассчитана на просмотр нескольких результатов.
+The result table shows index, label, start, end, and duration. Search modes are
+**contains**, **exact**, and **regex**. The table grows with the control panel so
+that multiple results remain visible.
 
-## Время и контекст
+## Time and context
 
-**Left context** и **Right context** расширяют окно вокруг найденного сегмента;
-по умолчанию оба равны 0. **Time mode** задаёт подписи времени:
+**Left context** and **Right context** extend the view around the selected
+annotation; both default to 0. **Time mode** controls displayed values:
 
-- **Reset to zero** — ноль совпадает с началом показанного окна;
-- **Original time** — абсолютное время аудиофайла;
-- **Zero at target** — ноль совпадает с началом целевого сегмента.
+- **Reset to zero** sets zero at the beginning of the view.
+- **Original time** uses absolute recording time.
+- **Zero at target** sets zero at the beginning of the selected target.
 
-## Предпросмотр
+## Preview
 
-В режиме **Fit to window** целая публикационная фигура равномерно масштабируется
-до доступной области. В режиме **Real size** сохраняется её физический размер;
-для просмотра большой фигуры используются полосы прокрутки. Шрифты, линии,
-pitch и форманты масштабируются вместе с изображением, поэтому пропорции
-предпросмотра совпадают с экспортом.
+**Fit to window** scales the complete publication figure uniformly to the
+available preview area. **Real size** preserves its physical dimensions and
+uses scroll bars when needed. Fonts, lines, pitch, and formants scale together,
+so preview proportions match the exported result.
 
-Меню **Help** внутри программы содержит краткую памятку по основным операциям.
+The in-app **Help** menu provides a compact guide to common operations.
 

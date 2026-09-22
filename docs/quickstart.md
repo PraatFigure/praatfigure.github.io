@@ -1,31 +1,29 @@
-# Быстрый старт
+# Quick start
 
-1. Нажмите **Open audio…** и выберите аудиозапись.
-2. Нажмите **Open TextGrid…** и выберите соответствующую разметку.
-3. В блоке **Find segment** выберите tier. Введите текст в поиск, если нужно
-   сузить список.
-4. Дважды щёлкните строку нужного интервала либо выделите её и нажмите
-   **Render selected interval**.
-5. Настройте слои, подписи и оформление в левой панели. Предпросмотр обновится.
-6. Нажмите **Export…**, проверьте имя, формат и папку и сохраните изображение.
+1. Select **Open audio…** and choose a recording.
+2. Select **Open TextGrid…** and choose its annotation file.
+3. Under **Find segment**, choose a tier and optionally filter its annotations.
+4. Double-click an interval, or select it and press **Render selected interval**.
+5. Configure tracks, labels, and appearance in the left panel.
+6. Select **Export…**, check the filename, format, and folder, and save the image.
 
-## Показ границ внутреннего сегмента
+## Show the boundaries of an inner segment
 
-Например, слово целиком находится в tier `word`, а показать нужно только
-границы звука `a` из tier `segment`:
+Suppose the full word is on tier `word`, while only vowel `a` from tier
+`segment` should be highlighted:
 
-1. выберите слово в таблице `word` и отрисуйте его;
-2. в **Target boundaries inside the view** выберите `segment`;
-3. отметьте галочкой строку `a`;
-4. включите **Boundary lines**, если пунктирные линии нужны;
-5. при необходимости включите подписи начала/конца или **Duration**.
+1. render the word from the `word` results table;
+2. choose `segment` under **Target boundaries inside the view**;
+3. check the row containing `a`;
+4. enable **Boundary lines** if the dashed lines are required;
+5. optionally enable endpoint labels or **Duration**.
 
-Галочки позволяют независимо добавить и убрать каждый внутренний сегмент.
-Кнопка **Clear projected boundaries** снимает весь выбор.
+Each inner interval has an independent checkbox. Uncheck it to remove its
+projection. **Clear projected boundaries** clears the complete target selection.
 
-## Произвольный диапазон
+## Use an arbitrary time range
 
-Введите абсолютные значения в **Start [s]** и **End [s]**, затем нажмите
-**Use manual timespan**. Для такого выделения стандартное имя экспорта строится
-из временного интервала.
+Enter absolute values in **Start [s]** and **End [s]**, then select
+**Use manual timespan**. The default export name for a manual selection contains
+the absolute time range.
 
