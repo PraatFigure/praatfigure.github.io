@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mpl-cache/
+.coverage
+build/
+dist/
+dist-installer/
+site/
+PraatFigure.AppDir/
+*.AppImage
+*.egg-info/
+.venv/
+*.praatfig.json~
+tmp/

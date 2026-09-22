@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PraatFigure
+Comment=Publication-ready phonetic figures from audio and Praat TextGrids
+Exec=PraatFigure
+Icon=praatfigure
+Categories=Science;AudioVideo;Graphics;
+Terminal=false

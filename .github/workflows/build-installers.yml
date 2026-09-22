@@ -1,0 +1,129 @@
+name: Build installers
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install build dependencies
+        run: python -m pip install ".[all,build]"
+      - name: Build application
+        run: pyinstaller --noconfirm --clean packaging/PraatFigure.spec
+      - name: Smoke-test executable
+        run: python -c "import subprocess; subprocess.run([r'dist\PraatFigure\PraatFigure.exe', '--help'], check=True, timeout=120)"
+      - name: Read package version
+        id: version
+        shell: pwsh
+        run: |
+          $version = python -c "import importlib.metadata; print(importlib.metadata.version('praatfigure'))"
+          "value=$version" >> $env:GITHUB_OUTPUT
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+      - name: Build Windows installer
+        shell: pwsh
+        run: '& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DMyAppVersion=${{ steps.version.outputs.value }}" packaging\windows\PraatFigure.iss'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist-installer/*.exe
+          if-no-files-found: error
+
+  macos:
+    name: macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install build dependencies
+        run: python -m pip install ".[all,build]"
+      - name: Build application bundle
+        run: pyinstaller --noconfirm --clean packaging/PraatFigure.spec
+      - name: Smoke-test executable
+        run: dist/PraatFigure.app/Contents/MacOS/PraatFigure --help
+      - name: Create DMG
+        run: |
+          mkdir -p dist-installer
+          VERSION="$(python -c "import importlib.metadata; print(importlib.metadata.version('praatfigure'))")"
+          hdiutil create -volname PraatFigure -srcfolder dist/PraatFigure.app -ov -format UDZO "dist-installer/PraatFigure-${VERSION}-macOS-${{ matrix.arch }}.dmg"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}-installer
+          path: dist-installer/*.dmg
+          if-no-files-found: error
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install system libraries
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libxkbcommon-x11-0 libxcb-cursor0
+      - name: Install build dependencies
+        run: python -m pip install ".[all,build]"
+      - name: Build application
+        run: pyinstaller --noconfirm --clean packaging/PraatFigure.spec
+      - name: Smoke-test executable
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: dist/PraatFigure/PraatFigure --help
+      - name: Create AppImage and portable archive
+        run: |
+          VERSION="$(python -c "import importlib.metadata; print(importlib.metadata.version('praatfigure'))")"
+          mkdir -p PraatFigure.AppDir/usr/bin dist-installer
+          cp -a dist/PraatFigure/. PraatFigure.AppDir/usr/bin/
+          cp packaging/linux/AppRun PraatFigure.AppDir/AppRun
+          cp packaging/linux/PraatFigure.desktop PraatFigure.AppDir/PraatFigure.desktop
+          cp packaging/linux/praatfigure.svg PraatFigure.AppDir/praatfigure.svg
+          chmod +x PraatFigure.AppDir/AppRun PraatFigure.AppDir/usr/bin/PraatFigure
+          curl -L -o appimagetool.AppImage https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool.AppImage
+          ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 ./appimagetool.AppImage PraatFigure.AppDir "dist-installer/PraatFigure-${VERSION}-Linux-x86_64.AppImage"
+          tar -C dist -czf "dist-installer/PraatFigure-${VERSION}-Linux-x86_64.tar.gz" PraatFigure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: dist-installer/*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, macos, linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          path: release
+          merge-multiple: true
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" release/* --generate-notes --title "PraatFigure ${GITHUB_REF_NAME}"

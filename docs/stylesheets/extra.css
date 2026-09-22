@@ -1,0 +1,20 @@
+:root {
+  --pf-accent: #2563eb;
+}
+
+body {
+  color: #1f2937;
+}
+
+a,
+a:visited {
+  color: var(--pf-accent);
+}
+
+code {
+  overflow-wrap: anywhere;
+}
+
+table {
+  width: 100%;
+}
