@@ -35,6 +35,11 @@ available preview area. **Real size** preserves its physical dimensions and
 uses scroll bars when needed. Fonts, lines, pitch, and formants scale together,
 so preview proportions match the exported result.
 
+Use the **Zoom** slider below the preview, or hold **Ctrl** and turn the mouse
+wheel over the figure, to magnify it from 25% to 400%. A value of 100% means
+the fitted size in **Fit to window** mode and the physical size in **Real size**
+mode. Right-click the preview to reset zoom or copy the complete figure.
+
 The in-app **Help** menu provides a compact guide to common operations.
 
 ## Spectrogram controls

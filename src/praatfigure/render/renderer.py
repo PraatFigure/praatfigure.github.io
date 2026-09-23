@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import re
 import textwrap
+from io import BytesIO
 from pathlib import Path
 
 import matplotlib
@@ -414,3 +415,13 @@ def export_figure(figure, path: str | Path, *, dpi: int = 300, transparent: bool
     figure.savefig(destination, dpi=dpi, transparent=transparent,
                    facecolor="none" if transparent else figure.get_facecolor())
     return destination
+
+
+def figure_to_png_bytes(figure, *, dpi: int = 300, transparent: bool = False) -> bytes:
+    """Render a figure as PNG bytes, suitable for the system clipboard."""
+    buffer = BytesIO()
+    figure.savefig(
+        buffer, format="png", dpi=dpi, transparent=transparent,
+        facecolor="none" if transparent else figure.get_facecolor(),
+    )
+    return buffer.getvalue()

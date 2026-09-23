@@ -6,13 +6,13 @@ import sys
 import unicodedata
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, QTimer, Qt, Signal
-from PySide6.QtGui import QFontDatabase
+from PySide6.QtCore import QByteArray, QEvent, QMimeData, QObject, QRunnable, QThreadPool, QTimer, Qt, Signal
+from PySide6.QtGui import QFontDatabase, QImage
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
     QDoubleSpinBox, QFileDialog, QFormLayout, QGridLayout, QHBoxLayout, QHeaderView,
     QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QMainWindow, QMessageBox, QPushButton, QSplitter, QTableWidget,
+    QMainWindow, QMenu, QMessageBox, QPushButton, QSlider, QSplitter, QTableWidget,
     QScrollArea, QTableWidgetItem, QToolBar, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
@@ -23,7 +23,7 @@ from ..models.figure import FigureSpec
 from ..models.project import Project
 from ..models.selection import Target, TimeRange
 from ..models.tracks import AnnotationTrack, SpectrogramTrack, WaveformTrack
-from ..render import Renderer, export_figure
+from ..render import Renderer, export_figure, figure_to_png_bytes
 from ..render.renderer import sanitise_filename
 
 
@@ -186,7 +186,33 @@ class MainWindow(QMainWindow):
         self.preview_scroll.setAlignment(Qt.AlignCenter)
         self.preview_scroll.setWidget(self.canvas)
         preview_layout.addWidget(self.preview_scroll, 1)
+        zoom_row = QHBoxLayout()
+        zoom_row.addStretch(1)
+        zoom_row.addWidget(QLabel("Zoom"))
+        self.preview_zoom = QSlider(Qt.Horizontal)
+        self.preview_zoom.setRange(25, 400)
+        self.preview_zoom.setSingleStep(5)
+        self.preview_zoom.setPageStep(25)
+        self.preview_zoom.setValue(100)
+        self.preview_zoom.setMaximumWidth(280)
+        self.preview_zoom.setToolTip("Preview zoom; hold Ctrl and use the mouse wheel")
+        self.preview_zoom_label = QLabel("100%")
+        self.preview_zoom_label.setMinimumWidth(45)
+        self.preview_zoom.valueChanged.connect(self._preview_zoom_changed)
+        zoom_row.addWidget(self.preview_zoom)
+        zoom_row.addWidget(self.preview_zoom_label)
+        self.copy_button = QPushButton("Copy PNG (300 DPI)")
+        self.copy_button.setToolTip("Copy the complete figure to the clipboard as a 300 DPI PNG")
+        self.copy_button.clicked.connect(self.copy_figure_to_clipboard)
+        zoom_row.addWidget(self.copy_button)
+        preview_layout.addLayout(zoom_row)
         preview_layout.addWidget(self.status_label)
+        for widget in (self.canvas, self.preview_scroll.viewport()):
+            widget.installEventFilter(self)
+            widget.setContextMenuPolicy(Qt.CustomContextMenu)
+            widget.customContextMenuRequested.connect(
+                lambda position, source=widget: self._show_preview_context_menu(source, position)
+            )
         splitter.addWidget(preview)
         splitter.setCollapsible(0, False)
         splitter.setCollapsible(1, False)
@@ -796,6 +822,35 @@ class MainWindow(QMainWindow):
     def _preview_mode_changed(self, *_args) -> None:
         self._apply_preview_scale()
 
+    def _preview_zoom_changed(self, value: int) -> None:
+        self.preview_zoom_label.setText(f"{value}%")
+        self._apply_preview_scale()
+
+    def eventFilter(self, watched, event) -> bool:
+        if (
+            event.type() == QEvent.Wheel
+            and event.modifiers() & Qt.ControlModifier
+            and hasattr(self, "preview_zoom")
+        ):
+            delta = event.angleDelta().y()
+            if delta:
+                change = self.preview_zoom.singleStep() if delta > 0 else -self.preview_zoom.singleStep()
+                self.preview_zoom.setValue(self.preview_zoom.value() + change)
+                event.accept()
+                return True
+        return super().eventFilter(watched, event)
+
+    def _show_preview_context_menu(self, source: QWidget, position) -> None:
+        menu = QMenu(self)
+        copy_action = menu.addAction("Copy figure as PNG (300 DPI)")
+        copy_action.setEnabled(self.current_figure is not None and not self._render_busy)
+        reset_action = menu.addAction("Reset zoom to 100%")
+        selected = menu.exec(source.mapToGlobal(position))
+        if selected is copy_action:
+            self.copy_figure_to_clipboard()
+        elif selected is reset_action:
+            self.preview_zoom.setValue(100)
+
     def _apply_preview_scale(self) -> None:
         if self.current_figure is None or not hasattr(self, "preview_scroll"):
             return
@@ -812,6 +867,7 @@ class MainWindow(QMainWindow):
             available_width = max(100.0, viewport.width() - 8.0)
             available_height = max(100.0, viewport.height() - 8.0)
             scale = max(0.05, min(available_width / real_width, available_height / real_height))
+        scale *= self.preview_zoom.value() / 100.0
         display_width = max(1, round(real_width * scale))
         display_height = max(1, round(real_height * scale))
         pixel_ratio = self.canvas.devicePixelRatioF()
@@ -871,6 +927,38 @@ class MainWindow(QMainWindow):
                 plt.close(figure)
             self._last_export_directory = str(destination.parent)
             self.status_label.setText(f"Exported {destination}")
+        except Exception as exc:
+            self._error(str(exc))
+
+    def copy_figure_to_clipboard(self) -> None:
+        if not self.audio or not self.grid or not self.spec or self.current_figure is None:
+            self.status_label.setText("Render a figure before copying it.")
+            return
+        if self._render_busy:
+            self.status_label.setText("Wait for the current preview before copying.")
+            return
+        try:
+            self._apply_controls()
+            clipboard_spec = deepcopy(self.spec)
+            clipboard_spec.appearance.dpi = 300
+            figure = self.renderer.render(self.audio, self.grid, clipboard_spec)
+            try:
+                png = figure_to_png_bytes(figure, dpi=300)
+            finally:
+                plt.close(figure)
+            image = QImage.fromData(png, "PNG")
+            if image.isNull():
+                raise RuntimeError("Could not create the clipboard image.")
+            dots_per_metre = round(300 / 0.0254)
+            image.setDotsPerMeterX(dots_per_metre)
+            image.setDotsPerMeterY(dots_per_metre)
+            mime = QMimeData()
+            mime.setData("image/png", QByteArray(png))
+            mime.setImageData(image)
+            QApplication.clipboard().setMimeData(mime)
+            self.status_label.setText(
+                f"Copied PNG to clipboard at 300 DPI ({image.width()} × {image.height()} px)"
+            )
         except Exception as exc:
             self._error(str(exc))
 
@@ -1031,6 +1119,9 @@ class MainWindow(QMainWindow):
             "• Fit to window scales the complete final figure, including fonts, pitch/formant "
             "markers, and line widths.\n"
             "• Real size uses the physical width and height configured for export; scroll if needed.\n\n"
+            "Use the Zoom slider or Ctrl + mouse wheel over the preview to zoom from 25% "
+            "to 400%. Right-click the preview to reset zoom or copy the full figure as a "
+            "300 DPI PNG. The Copy PNG button provides the same command.\n\n"
             "Display controls choose endpoint/automatic time ticks, Hz ticks, tier names, "
             "target start/end labels, projected-boundary width, and separate "
             "base/annotation/axis font sizes plus any installed system font. Internal target "

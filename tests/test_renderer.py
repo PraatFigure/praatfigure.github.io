@@ -6,7 +6,7 @@ from praatfigure.io.textgrid import load_textgrid
 from praatfigure.models.figure import FigureSpec
 from praatfigure.models.selection import Target, TimeRange
 from praatfigure.models.tracks import AnnotationTrack, SpectrogramTrack, WaveformTrack
-from praatfigure.render import Renderer, export_figure
+from praatfigure.render import Renderer, export_figure, figure_to_png_bytes
 
 from pathlib import Path
 
@@ -79,6 +79,16 @@ def test_exports_and_no_overwrite(tmp_path):
         else:
             raise AssertionError("Existing export was silently overwritten")
     plt.close(figure)
+
+
+def test_figure_to_png_bytes():
+    figure, _ = _render()
+    try:
+        png = figure_to_png_bytes(figure, dpi=300)
+        assert png.startswith(b"\x89PNG\r\n\x1a\n")
+        assert len(png) > 1000
+    finally:
+        plt.close(figure)
 
 
 def test_target_time_labels_and_annotation_outer_frame():
