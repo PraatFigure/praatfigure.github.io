@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "praatfigure"
-version = "0.1.1"
+version = "0.1.2"
 description = "Publication-ready phonetic figures from audio and Praat TextGrids"
 readme = "README.md"
 license = { file = "LICENSE" }

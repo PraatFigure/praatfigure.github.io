@@ -37,3 +37,9 @@ so preview proportions match the exported result.
 
 The in-app **Help** menu provides a compact guide to common operations.
 
+## Spectrogram controls
+
+The appearance panel includes dynamic range, pre-emphasis, quiet-region
+normalization, time step, and frequency step. Higher dynamic range reveals more
+low-level energy. Smaller time and frequency steps increase detail. Changes are
+applied to every visible spectrogram track and redraw the preview automatically.

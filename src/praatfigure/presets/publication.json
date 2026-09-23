@@ -3,7 +3,7 @@
   "time_mode": "relative_to_view_start",
   "tracks": [
     {"kind": "waveform", "height": 1.0, "channel": "separate", "show_y_ticks": false, "show_y_label": false},
-    {"kind": "spectrogram", "height": 1.0, "maximum_frequency": 5000.0, "window_length": 0.005, "time_step": 0.002, "frequency_step": 20.0, "cmap": "Greys", "show_frequency_ticks": true, "show_y_label": false}
+    {"kind": "spectrogram", "height": 1.0, "maximum_frequency": 5000.0, "window_length": 0.005, "time_step": 0.001, "frequency_step": 10.0, "dynamic_range": 70.0, "preemphasis_from": 50.0, "dynamic_compression": 0.25, "cmap": "Greys", "show_frequency_ticks": true, "show_y_label": false}
   ],
   "boundary_projection": {"mode": "target_only", "merge": true, "tolerance": 0.0005},
   "x_ticks_mode": "endpoints",

@@ -8,12 +8,18 @@ from ..io.audio import AudioData
 
 def spectrogram(audio: AudioData, start: float, end: float, *, window_length: float = 0.005,
                 maximum_frequency: float = 5000.0, dynamic_range: float = 70.0,
-                time_step: float = 0.002, frequency_step: float = 20.0):
-    _, values = audio.window(start, end)
+                time_step: float = 0.001, frequency_step: float = 10.0,
+                preemphasis_from: float = 50.0,
+                dynamic_compression: float = 0.0):
+    # Include enough context for the first and last analysis windows to reach
+    # the requested view boundaries. The renderer crops the padded frames.
+    analysis_start = max(audio.start_time, start - window_length)
+    analysis_end = min(audio.end_time, end + window_length)
+    _, values = audio.window(analysis_start, analysis_end)
     if len(values) < 2:
         raise ValueError("Selected audio range is too short for a spectrogram")
     try:
-        sound = _parselmouth_sound(audio, start, end)
+        sound = _parselmouth_sound(audio, analysis_start, analysis_end)
         obj = sound.to_spectrogram(
             window_length=window_length,
             maximum_frequency=maximum_frequency,
@@ -21,8 +27,9 @@ def spectrogram(audio: AudioData, start: float, end: float, *, window_length: fl
             frequency_step=frequency_step,
         )
         power = np.asarray(obj.values, dtype=float)
-        db = 10 * np.log10(np.maximum(power, np.finfo(float).tiny))
-        db = np.maximum(db, np.nanmax(db) - dynamic_range)
+        db = _prepare_spectrogram_db(
+            power, obj.ys(), dynamic_range, preemphasis_from, dynamic_compression
+        )
         return obj.ys(), obj.xs(), db
     except ImportError:
         pass
@@ -41,10 +48,31 @@ def spectrogram(audio: AudioData, start: float, end: float, *, window_length: fl
         values, fs=audio.sample_rate, window=window, nperseg=nperseg, nfft=nfft,
         noverlap=max(0, nperseg - hop), mode="psd",
     )
-    db = 10 * np.log10(np.maximum(power, np.finfo(float).tiny))
-    db = np.maximum(db, np.nanmax(db) - dynamic_range)
     keep = frequencies <= maximum_frequency
-    return frequencies[keep], times + start, db[keep]
+    frequencies = frequencies[keep]
+    db = _prepare_spectrogram_db(
+        power[keep], frequencies, dynamic_range, preemphasis_from, dynamic_compression
+    )
+    return frequencies, times + analysis_start, db
+
+
+def _prepare_spectrogram_db(power: np.ndarray, frequencies: np.ndarray,
+                            dynamic_range: float, preemphasis_from: float,
+                            dynamic_compression: float) -> np.ndarray:
+    """Apply Praat-like display emphasis and intensity normalization."""
+    db = 10 * np.log10(np.maximum(power, np.finfo(float).tiny))
+    if preemphasis_from > 0:
+        # A first-order high-pass display curve: approximately +6 dB/octave
+        # above the selected frequency, without modifying the source audio.
+        emphasis = 10 * np.log10(1.0 + (frequencies / preemphasis_from) ** 2)
+        db = db + emphasis[:, np.newaxis]
+    compression = float(np.clip(dynamic_compression, 0.0, 1.0))
+    if compression and db.shape[1]:
+        local_peak = np.nanmax(db, axis=0)
+        global_peak = float(np.nanmax(local_peak))
+        db = db + compression * (global_peak - local_peak)[np.newaxis, :]
+    maximum = float(np.nanmax(db))
+    return np.maximum(db, maximum - max(1.0, dynamic_range))
 
 
 def _parselmouth_sound(audio: AudioData, start: float, end: float):

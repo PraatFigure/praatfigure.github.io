@@ -34,14 +34,16 @@ class SpectrogramTrack(Track):
     maximum_frequency: float = 5000.0
     window_length: float = 0.005
     dynamic_range: float = 70.0
+    preemphasis_from: float = 50.0
+    dynamic_compression: float = 0.25
     cmap: str = "Greys"
     pitch: bool = False
     formants: list[int] = field(default_factory=list)
     pitch_floor: float = 75.0
     pitch_ceiling: float = 600.0
     formant_ceiling: float = 5500.0
-    time_step: float = 0.002
-    frequency_step: float = 20.0
+    time_step: float = 0.001
+    frequency_step: float = 10.0
     show_frequency_ticks: bool = True
     show_y_label: bool = False
 

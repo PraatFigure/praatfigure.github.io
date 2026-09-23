@@ -318,6 +318,49 @@ class MainWindow(QMainWindow):
         self.boundary_width.setSingleStep(0.25)
         self.boundary_width.setValue(1.1)
         self.boundary_width.valueChanged.connect(self.schedule_preview)
+        self.spectrogram_dynamic_range = QDoubleSpinBox()
+        self.spectrogram_dynamic_range.setRange(20.0, 120.0)
+        self.spectrogram_dynamic_range.setDecimals(1)
+        self.spectrogram_dynamic_range.setSingleStep(5.0)
+        self.spectrogram_dynamic_range.setValue(70.0)
+        self.spectrogram_dynamic_range.setToolTip(
+            "Higher values retain more low-level detail and background noise."
+        )
+        self.spectrogram_preemphasis = QDoubleSpinBox()
+        self.spectrogram_preemphasis.setRange(0.0, 1000.0)
+        self.spectrogram_preemphasis.setDecimals(0)
+        self.spectrogram_preemphasis.setSingleStep(10.0)
+        self.spectrogram_preemphasis.setSpecialValueText("Off")
+        self.spectrogram_preemphasis.setValue(50.0)
+        self.spectrogram_preemphasis.setToolTip(
+            "Praat-like +6 dB/octave display emphasis above this frequency."
+        )
+        self.spectrogram_compression = QDoubleSpinBox()
+        self.spectrogram_compression.setRange(0.0, 1.0)
+        self.spectrogram_compression.setDecimals(2)
+        self.spectrogram_compression.setSingleStep(0.05)
+        self.spectrogram_compression.setValue(0.25)
+        self.spectrogram_compression.setToolTip(
+            "Makes quiet time slices more visible; 0 is off and 1 fully normalizes them."
+        )
+        self.spectrogram_time_step = QDoubleSpinBox()
+        self.spectrogram_time_step.setRange(0.25, 10.0)
+        self.spectrogram_time_step.setDecimals(2)
+        self.spectrogram_time_step.setSingleStep(0.25)
+        self.spectrogram_time_step.setValue(1.0)
+        self.spectrogram_time_step.setToolTip("Smaller values provide finer time detail.")
+        self.spectrogram_frequency_step = QDoubleSpinBox()
+        self.spectrogram_frequency_step.setRange(5.0, 250.0)
+        self.spectrogram_frequency_step.setDecimals(1)
+        self.spectrogram_frequency_step.setSingleStep(5.0)
+        self.spectrogram_frequency_step.setValue(10.0)
+        self.spectrogram_frequency_step.setToolTip("Smaller values provide finer frequency detail.")
+        for control in (
+            self.spectrogram_dynamic_range, self.spectrogram_preemphasis,
+            self.spectrogram_compression, self.spectrogram_time_step,
+            self.spectrogram_frequency_step,
+        ):
+            control.valueChanged.connect(self.schedule_preview)
         self.base_font_size = QDoubleSpinBox()
         self.annotation_font_size = QDoubleSpinBox()
         self.axis_font_size = QDoubleSpinBox()
@@ -355,6 +398,11 @@ class MainWindow(QMainWindow):
         display_row.addRow(self.tier_names_toggle)
         display_row.addRow(self.target_times_toggle)
         display_row.addRow("Boundary width [pt]", self.boundary_width)
+        display_row.addRow("Spectrogram dynamic range [dB]", self.spectrogram_dynamic_range)
+        display_row.addRow("Spectrogram pre-emphasis from [Hz]", self.spectrogram_preemphasis)
+        display_row.addRow("Spectrogram quiet-region normalization", self.spectrogram_compression)
+        display_row.addRow("Spectrogram time step [ms]", self.spectrogram_time_step)
+        display_row.addRow("Spectrogram frequency step [Hz]", self.spectrogram_frequency_step)
         display_row.addRow("Font family", self.font_family)
         display_row.addRow("Base font [pt]", self.base_font_size)
         display_row.addRow("Annotation font [pt]", self.annotation_font_size)
@@ -655,6 +703,11 @@ class MainWindow(QMainWindow):
                 track.pitch = self.pitch_toggle.isChecked()
                 track.formants = [1, 2] if self.formant_toggle.isChecked() else []
                 track.show_frequency_ticks = self.frequency_ticks_toggle.isChecked()
+                track.dynamic_range = self.spectrogram_dynamic_range.value()
+                track.preemphasis_from = self.spectrogram_preemphasis.value()
+                track.dynamic_compression = self.spectrogram_compression.value()
+                track.time_step = self.spectrogram_time_step.value() / 1000.0
+                track.frequency_step = self.spectrogram_frequency_step.value()
             elif isinstance(track, AnnotationTrack):
                 track.show_tier_name = "left" if self.tier_names_toggle.isChecked() else "hidden"
 
@@ -868,6 +921,13 @@ class MainWindow(QMainWindow):
         self.frequency_ticks_toggle.setChecked(
             any(track.show_frequency_ticks for track in spectrogram_tracks)
         )
+        if spectrogram_tracks:
+            spectrogram = spectrogram_tracks[0]
+            self.spectrogram_dynamic_range.setValue(spectrogram.dynamic_range)
+            self.spectrogram_preemphasis.setValue(spectrogram.preemphasis_from)
+            self.spectrogram_compression.setValue(spectrogram.dynamic_compression)
+            self.spectrogram_time_step.setValue(spectrogram.time_step * 1000.0)
+            self.spectrogram_frequency_step.setValue(spectrogram.frequency_step)
         self.tier_names_toggle.setChecked(
             any(track.show_tier_name != "hidden" for track in annotation_tracks)
         )
@@ -943,6 +1003,9 @@ class MainWindow(QMainWindow):
             "checkboxes; uncheck one or use Clear projected boundaries to remove projection.\n\n"
             "Duration is independent: turn on Duration while leaving Boundary lines and "
             "Label target start/end off to show only the duration value.\n\n"
+            "Spectrogram controls adjust low-level detail (dynamic range), Praat-like "
+            "pre-emphasis, quiet-region normalization, and time/frequency grid detail. "
+            "These settings change only the visualization, never the audio file.\n\n"
             "Export opens a dialog for filename, SVG/PDF/PNG format, DPI, and transparency. "
             "Use the Templates menu to save or apply all visual settings without changing "
             "the current annotation selection.",

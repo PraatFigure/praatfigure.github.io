@@ -19,6 +19,18 @@ def test_default_track_heights():
     assert AnnotationTrack(tier="phones").height == 0.5
 
 
+def test_spectrogram_raster_reaches_all_four_axis_boundaries():
+    figure, _ = _render()
+    axis = figure.axes[1]
+    mesh = axis.collections[0]
+    bounds = mesh.get_datalim(axis.transData).bounds
+    xlim = axis.get_xlim()
+    ylim = axis.get_ylim()
+    assert bounds[0] <= xlim[0] and bounds[0] + bounds[2] >= xlim[1]
+    assert bounds[1] <= ylim[0] and bounds[1] + bounds[3] >= ylim[1]
+    plt.close(figure)
+
+
 def _render():
     sample_rate = 16000
     times = np.arange(sample_rate) / sample_rate

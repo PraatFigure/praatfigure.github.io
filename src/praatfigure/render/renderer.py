@@ -176,7 +176,8 @@ class Renderer:
     def _draw_spectrogram(self, axis, audio, spec, transform, track: SpectrogramTrack) -> None:
         key = self._audio_key(audio) + ("spectrogram", spec.view_range.start, spec.view_range.end,
               track.window_length, track.maximum_frequency, track.dynamic_range,
-              track.time_step, track.frequency_step)
+              track.time_step, track.frequency_step, track.preemphasis_from,
+              track.dynamic_compression)
         frequencies, times, power = self.cache.get_or_create(key, lambda: calculate_spectrogram(
             audio, spec.view_range.start, spec.view_range.end,
             window_length=track.window_length,
@@ -184,9 +185,18 @@ class Renderer:
             dynamic_range=track.dynamic_range,
             time_step=track.time_step,
             frequency_step=track.frequency_step,
+            preemphasis_from=track.preemphasis_from,
+            dynamic_compression=track.dynamic_compression,
         ))
-        axis.pcolormesh(transform.forward(times), frequencies, power, shading="auto", cmap=track.cmap,
-                        rasterized=True)
+        display_times = np.asarray(transform.forward(times), dtype=float)
+        x0, x1 = axis.get_xlim()
+        x_edges = self._cell_edges(display_times, x0, x1)
+        y_edges = self._cell_edges(np.asarray(frequencies, dtype=float), 0.0,
+                                   track.maximum_frequency)
+        axis.pcolormesh(
+            x_edges, y_edges, power, shading="flat", cmap=track.cmap,
+            rasterized=True, antialiased=False, edgecolors="none", snap=True,
+        )
         axis.set_ylim(0, track.maximum_frequency)
         if track.show_frequency_ticks:
             step = 1000 if track.maximum_frequency >= 4000 else 500
@@ -207,6 +217,27 @@ class Renderer:
             for index, (times_f, frequencies_f) in values.items():
                 axis.scatter(transform.forward(times_f), frequencies_f, s=5, marker=".",
                              label=f"F{index}", zorder=5)
+
+    @staticmethod
+    def _cell_edges(centres: np.ndarray, lower: float, upper: float) -> np.ndarray:
+        """Convert regularly sampled cell centres into gap-free image edges."""
+        if centres.size == 0:
+            return np.array([lower, upper], dtype=float)
+        if centres.size == 1:
+            return np.array([lower, upper], dtype=float)
+        midpoints = (centres[:-1] + centres[1:]) / 2
+        edges = np.concatenate((
+            [centres[0] - (centres[1] - centres[0]) / 2],
+            midpoints,
+            [centres[-1] + (centres[-1] - centres[-2]) / 2],
+        ))
+        # Ensure the image reaches the frame when the requested view begins or
+        # ends between valid analysis centres (notably at the audio boundary).
+        if centres[0] >= lower:
+            edges[0] = lower
+        if centres[-1] <= upper:
+            edges[-1] = upper
+        return edges
 
     def _pitch_overlay(self, axis, audio, spec, transform, floor: float, ceiling: float) -> None:
         key = self._audio_key(audio) + ("pitch", spec.view_range.start, spec.view_range.end, floor, ceiling)

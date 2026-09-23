@@ -65,6 +65,9 @@ proportions at every Windows display scale.
 PNG is the default export format. The appearance panel exposes installed system
 fonts and independent base, annotation, and axis sizes (axis defaults to 6 pt).
 Duration rendering is independent from target boundary lines and start/end labels.
+Spectrogram controls expose dynamic range, 50 Hz Praat-like pre-emphasis,
+quiet-region normalization, and high-detail time/frequency steps. Analysis is
+padded and cropped to the exact view so the spectrogram reaches its frame.
 
 Render the first exact annotation match from the command line:
 
