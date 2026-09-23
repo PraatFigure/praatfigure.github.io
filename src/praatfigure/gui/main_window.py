@@ -339,7 +339,7 @@ class MainWindow(QMainWindow):
         self.spectrogram_compression.setRange(0.0, 1.0)
         self.spectrogram_compression.setDecimals(2)
         self.spectrogram_compression.setSingleStep(0.05)
-        self.spectrogram_compression.setValue(0.25)
+        self.spectrogram_compression.setValue(0.10)
         self.spectrogram_compression.setToolTip(
             "Makes quiet time slices more visible; 0 is off and 1 fully normalizes them."
         )

@@ -19,7 +19,7 @@ The interface exposes the main display controls:
   retained. A larger value shows weaker energy.
 - **Pre-emphasis from** applies a Praat-like 6 dB/octave display emphasis above
   the selected frequency. The default is 50 Hz; set it to **Off** to disable it.
-- **Quiet-region normalization** ranges from 0 to 1 and defaults to 0.25. Higher
+- **Quiet-region normalization** ranges from 0 to 1 and defaults to 0.10. Higher
   values raise quiet time slices relative to loud ones, making weak segments and
   noise more visible.
 - **Time step** and **Frequency step** control analysis-grid detail. Smaller
