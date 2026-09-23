@@ -14,6 +14,7 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Quick start: quickstart.md
+  - Complete interface guide: user-guide.md
   - Interface: interface.md
   - Selecting a region: selection.md
   - Tracks and appearance: tracks.md

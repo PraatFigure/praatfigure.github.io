@@ -64,6 +64,13 @@ class TrackTreeWidget(QTreeWidget):
         self.orderChanged.emit()
 
 
+class NoWheelComboBox(QComboBox):
+    """A combo box that does not change selection during page scrolling."""
+
+    def wheelEvent(self, event) -> None:
+        event.ignore()
+
+
 class ExportDialog(QDialog):
     def __init__(self, parent, directory: str, filename: str) -> None:
         super().__init__(parent)
@@ -73,7 +80,7 @@ class ExportDialog(QDialog):
         browse = QPushButton("Browse…")
         browse.clicked.connect(self._browse)
         self.filename = QLineEdit(filename)
-        self.format = QComboBox()
+        self.format = NoWheelComboBox()
         self.format.addItems(["PNG", "SVG", "PDF"])
         self.dpi = QDoubleSpinBox()
         self.dpi.setRange(72, 1200)
@@ -252,12 +259,12 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.grid_label)
 
         layout.addWidget(QLabel("Find segment"))
-        self.tier_combo = QComboBox()
+        self.tier_combo = NoWheelComboBox()
         self.tier_combo.currentTextChanged.connect(self.populate_table)
         self.search = QLineEdit()
         self.search.setPlaceholderText("Search annotation")
         self.search.textChanged.connect(self.populate_table)
-        self.search_mode = QComboBox()
+        self.search_mode = NoWheelComboBox()
         self.search_mode.addItems(["contains", "exact", "regex"])
         self.search_mode.currentTextChanged.connect(self.populate_table)
         row = QHBoxLayout()
@@ -289,7 +296,7 @@ class MainWindow(QMainWindow):
             spin.setDecimals(3)
             spin.setSingleStep(0.05)
             spin.setValue(0.0)
-        self.time_mode = QComboBox()
+        self.time_mode = NoWheelComboBox()
         self.time_mode.addItem("Reset to zero", "relative_to_view_start")
         self.time_mode.addItem("Original time", "absolute")
         self.time_mode.addItem("Zero at target", "relative_to_target_start")
@@ -312,7 +319,7 @@ class MainWindow(QMainWindow):
         target_heading = QLabel("Target boundaries")
         target_heading.setToolTip("Annotation boundaries contained inside the current view")
         layout.addWidget(target_heading)
-        self.target_tier_combo = QComboBox()
+        self.target_tier_combo = NoWheelComboBox()
         self.target_tier_combo.currentTextChanged.connect(self._populate_target_entries)
         self.target_entries = QListWidget()
         self.target_entries.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -358,7 +365,7 @@ class MainWindow(QMainWindow):
         display_row = QFormLayout()
         display_row.setRowWrapPolicy(QFormLayout.WrapLongRows)
         display_row.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
-        self.time_ticks = QComboBox()
+        self.time_ticks = NoWheelComboBox()
         self.time_ticks.addItem("Start and end", "endpoints")
         self.time_ticks.addItem("Automatic", "automatic")
         self.time_ticks.addItem("Hidden", "hidden")
@@ -369,7 +376,7 @@ class MainWindow(QMainWindow):
         self.tier_names_toggle = QCheckBox("Show tier names")
         self.target_times_toggle = QCheckBox("Target endpoint labels")
         self.target_times_toggle.setToolTip("Label target start and end above the figure")
-        self.preview_size_mode = QComboBox()
+        self.preview_size_mode = NoWheelComboBox()
         self.preview_size_mode.addItem("Fit to window", "fit")
         self.preview_size_mode.addItem("Real size", "real")
         self.preview_size_mode.currentIndexChanged.connect(self._preview_mode_changed)
@@ -416,7 +423,7 @@ class MainWindow(QMainWindow):
         self.spectrogram_frequency_step.setSingleStep(5.0)
         self.spectrogram_frequency_step.setValue(10.0)
         self.spectrogram_frequency_step.setToolTip("Smaller values provide finer frequency detail.")
-        self.spectrogram_interpolation = QComboBox()
+        self.spectrogram_interpolation = NoWheelComboBox()
         self.spectrogram_interpolation.addItem("Bicubic (Praat-like)", "bicubic")
         self.spectrogram_interpolation.addItem("Bilinear", "bilinear")
         self.spectrogram_interpolation.addItem("Nearest (raw)", "nearest")
@@ -433,7 +440,7 @@ class MainWindow(QMainWindow):
         self.base_font_size = QDoubleSpinBox()
         self.annotation_font_size = QDoubleSpinBox()
         self.axis_font_size = QDoubleSpinBox()
-        self.font_family = QComboBox()
+        self.font_family = NoWheelComboBox()
         system_families = set(QFontDatabase.families())
         if not system_families:
             from matplotlib.font_manager import fontManager

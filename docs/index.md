@@ -25,5 +25,6 @@ track defaults to 0.5. Left and right context default to zero, the time axis
 shows only its endpoints, and PNG is the default export format.
 
 Continue with [Installation](installation.md) and the
-[Quick start](quickstart.md).
-
+[Quick start](quickstart.md). The illustrated
+[Complete interface guide](user-guide.md) explains every control from the basic
+workflow through acoustic and publication details.
