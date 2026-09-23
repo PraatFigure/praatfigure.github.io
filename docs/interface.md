@@ -43,3 +43,5 @@ The appearance panel includes dynamic range, pre-emphasis, quiet-region
 normalization, time step, and frequency step. Higher dynamic range reveals more
 low-level energy. Smaller time and frequency steps increase detail. Changes are
 applied to every visible spectrogram track and redraw the preview automatically.
+The smoothing selector provides bicubic, bilinear, and raw nearest-neighbour
+display; bicubic is the Praat-like default.

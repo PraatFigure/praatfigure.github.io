@@ -193,9 +193,11 @@ class Renderer:
         x_edges = self._cell_edges(display_times, x0, x1)
         y_edges = self._cell_edges(np.asarray(frequencies, dtype=float), 0.0,
                                    track.maximum_frequency)
-        axis.pcolormesh(
-            x_edges, y_edges, power, shading="flat", cmap=track.cmap,
-            rasterized=True, antialiased=False, edgecolors="none", snap=True,
+        axis.imshow(
+            power, origin="lower", aspect="auto", cmap=track.cmap,
+            extent=(x_edges[0], x_edges[-1], y_edges[0], y_edges[-1]),
+            interpolation=track.interpolation, interpolation_stage="rgba",
+            rasterized=True,
         )
         axis.set_ylim(0, track.maximum_frequency)
         if track.show_frequency_ticks:

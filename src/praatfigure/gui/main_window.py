@@ -172,7 +172,10 @@ class MainWindow(QMainWindow):
         help_menu.addAction("Quick start and controls", self.show_help)
 
         splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(self._left_panel())
+        splitter.setObjectName("main-splitter")
+        self.main_splitter = splitter
+        self.controls_scroll = self._left_panel()
+        splitter.addWidget(self.controls_scroll)
         preview = QWidget()
         preview_layout = QVBoxLayout(preview)
         self.status_label = QLabel("Open an audio file and its TextGrid to begin.")
@@ -185,7 +188,11 @@ class MainWindow(QMainWindow):
         preview_layout.addWidget(self.preview_scroll, 1)
         preview_layout.addWidget(self.status_label)
         splitter.addWidget(preview)
-        splitter.setSizes([320, 1280])
+        splitter.setCollapsible(0, False)
+        splitter.setCollapsible(1, False)
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([500, 1240])
         self.setCentralWidget(splitter)
 
     def _left_panel(self) -> QWidget:
@@ -197,6 +204,8 @@ class MainWindow(QMainWindow):
         grid_button.clicked.connect(self.open_textgrid)
         self.audio_label = QLabel("Audio: —")
         self.grid_label = QLabel("TextGrid: —")
+        self.audio_label.setWordWrap(True)
+        self.grid_label.setWordWrap(True)
         layout.addWidget(audio_button)
         layout.addWidget(self.audio_label)
         layout.addWidget(grid_button)
@@ -219,7 +228,10 @@ class MainWindow(QMainWindow):
         self.table = QTableWidget(0, 5)
         self.table.setMinimumHeight(190)
         self.table.setHorizontalHeaderLabels(["#", "Label", "Start", "End", "ms"])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        for column in (2, 3, 4):
+            self.table.horizontalHeader().setSectionResizeMode(column, QHeaderView.ResizeToContents)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.doubleClicked.connect(self.select_row)
         layout.addWidget(self.table, 2)
@@ -228,6 +240,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(use_interval)
 
         form = QFormLayout()
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         self.left_padding = QDoubleSpinBox()
         self.right_padding = QDoubleSpinBox()
         for spin in (self.left_padding, self.right_padding):
@@ -255,7 +269,9 @@ class MainWindow(QMainWindow):
         form.addRow("", manual_button)
         layout.addLayout(form)
 
-        layout.addWidget(QLabel("Target boundaries inside the view"))
+        target_heading = QLabel("Target boundaries")
+        target_heading.setToolTip("Annotation boundaries contained inside the current view")
+        layout.addWidget(target_heading)
         self.target_tier_combo = QComboBox()
         self.target_tier_combo.currentTextChanged.connect(self._populate_target_entries)
         self.target_entries = QListWidget()
@@ -271,7 +287,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(use_targets)
         layout.addWidget(clear_targets)
 
-        layout.addWidget(QLabel("Tracks (edit name/height; drag to reorder)"))
+        tracks_heading = QLabel("Tracks")
+        tracks_heading.setToolTip("Edit names and heights, or drag rows to reorder tracks")
+        layout.addWidget(tracks_heading)
         self.tracks = TrackTreeWidget()
         self.tracks.setColumnCount(3)
         self.tracks.setHeaderLabels(["Show", "Name on figure", "Height"])
@@ -282,9 +300,9 @@ class MainWindow(QMainWindow):
         self.tracks.orderChanged.connect(self.schedule_preview_immediate)
         self.tracks.itemChanged.connect(self.schedule_preview)
         self.tracks.currentItemChanged.connect(self._track_selected)
-        self.tracks.header().resizeSection(0, 55)
-        self.tracks.header().resizeSection(1, 185)
-        self.tracks.header().resizeSection(2, 75)
+        self.tracks.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.tracks.header().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.tracks.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         layout.addWidget(self.tracks, 1)
         height_row = QHBoxLayout()
         height_row.addWidget(QLabel("Selected track height"))
@@ -298,16 +316,19 @@ class MainWindow(QMainWindow):
         layout.addLayout(height_row)
 
         display_row = QFormLayout()
+        display_row.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        display_row.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         self.time_ticks = QComboBox()
         self.time_ticks.addItem("Start and end", "endpoints")
         self.time_ticks.addItem("Automatic", "automatic")
         self.time_ticks.addItem("Hidden", "hidden")
-        self.time_label_toggle = QCheckBox("Show Time [s] label")
-        self.wave_axis_toggle = QCheckBox("Show waveform y-axis")
-        self.frequency_ticks_toggle = QCheckBox("Show spectrogram Hz ticks")
+        self.time_label_toggle = QCheckBox("Time [s] label")
+        self.wave_axis_toggle = QCheckBox("Waveform y-axis")
+        self.frequency_ticks_toggle = QCheckBox("Spectrogram Hz ticks")
         self.frequency_ticks_toggle.setChecked(True)
         self.tier_names_toggle = QCheckBox("Show tier names")
-        self.target_times_toggle = QCheckBox("Label target start/end above figure")
+        self.target_times_toggle = QCheckBox("Target endpoint labels")
+        self.target_times_toggle.setToolTip("Label target start and end above the figure")
         self.preview_size_mode = QComboBox()
         self.preview_size_mode.addItem("Fit to window", "fit")
         self.preview_size_mode.addItem("Real size", "real")
@@ -355,6 +376,14 @@ class MainWindow(QMainWindow):
         self.spectrogram_frequency_step.setSingleStep(5.0)
         self.spectrogram_frequency_step.setValue(10.0)
         self.spectrogram_frequency_step.setToolTip("Smaller values provide finer frequency detail.")
+        self.spectrogram_interpolation = QComboBox()
+        self.spectrogram_interpolation.addItem("Bicubic (Praat-like)", "bicubic")
+        self.spectrogram_interpolation.addItem("Bilinear", "bilinear")
+        self.spectrogram_interpolation.addItem("Nearest (raw)", "nearest")
+        self.spectrogram_interpolation.setToolTip(
+            "Controls display smoothing only; it does not change acoustic resolution."
+        )
+        self.spectrogram_interpolation.currentIndexChanged.connect(self.schedule_preview)
         for control in (
             self.spectrogram_dynamic_range, self.spectrogram_preemphasis,
             self.spectrogram_compression, self.spectrogram_time_step,
@@ -398,11 +427,13 @@ class MainWindow(QMainWindow):
         display_row.addRow(self.tier_names_toggle)
         display_row.addRow(self.target_times_toggle)
         display_row.addRow("Boundary width [pt]", self.boundary_width)
-        display_row.addRow("Spectrogram dynamic range [dB]", self.spectrogram_dynamic_range)
-        display_row.addRow("Spectrogram pre-emphasis from [Hz]", self.spectrogram_preemphasis)
-        display_row.addRow("Spectrogram quiet-region normalization", self.spectrogram_compression)
-        display_row.addRow("Spectrogram time step [ms]", self.spectrogram_time_step)
-        display_row.addRow("Spectrogram frequency step [Hz]", self.spectrogram_frequency_step)
+        display_row.addRow(QLabel("Spectrogram appearance"))
+        display_row.addRow("Dynamic range [dB]", self.spectrogram_dynamic_range)
+        display_row.addRow("Pre-emphasis from [Hz]", self.spectrogram_preemphasis)
+        display_row.addRow("Quiet normalization", self.spectrogram_compression)
+        display_row.addRow("Time step [ms]", self.spectrogram_time_step)
+        display_row.addRow("Frequency step [Hz]", self.spectrogram_frequency_step)
+        display_row.addRow("Smoothing", self.spectrogram_interpolation)
         display_row.addRow("Font family", self.font_family)
         display_row.addRow("Base font [pt]", self.base_font_size)
         display_row.addRow("Annotation font [pt]", self.annotation_font_size)
@@ -417,11 +448,12 @@ class MainWindow(QMainWindow):
         nav.addWidget(following)
         layout.addLayout(nav)
         scroll = QScrollArea()
+        scroll.setObjectName("controls-scroll")
         scroll.setWidgetResizable(True)
         scroll.setWidget(panel)
-        scroll.setMinimumWidth(300)
-        scroll.setMaximumWidth(400)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setMinimumWidth(420)
+        scroll.setMaximumWidth(650)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         return scroll
 
     def open_audio(self) -> None:
@@ -708,6 +740,7 @@ class MainWindow(QMainWindow):
                 track.dynamic_compression = self.spectrogram_compression.value()
                 track.time_step = self.spectrogram_time_step.value() / 1000.0
                 track.frequency_step = self.spectrogram_frequency_step.value()
+                track.interpolation = self.spectrogram_interpolation.currentData()
             elif isinstance(track, AnnotationTrack):
                 track.show_tier_name = "left" if self.tier_names_toggle.isChecked() else "hidden"
 
@@ -928,6 +961,8 @@ class MainWindow(QMainWindow):
             self.spectrogram_compression.setValue(spectrogram.dynamic_compression)
             self.spectrogram_time_step.setValue(spectrogram.time_step * 1000.0)
             self.spectrogram_frequency_step.setValue(spectrogram.frequency_step)
+            interpolation_index = self.spectrogram_interpolation.findData(spectrogram.interpolation)
+            self.spectrogram_interpolation.setCurrentIndex(max(0, interpolation_index))
         self.tier_names_toggle.setChecked(
             any(track.show_tier_name != "hidden" for track in annotation_tracks)
         )

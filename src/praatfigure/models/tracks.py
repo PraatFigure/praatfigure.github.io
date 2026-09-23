@@ -36,6 +36,7 @@ class SpectrogramTrack(Track):
     dynamic_range: float = 70.0
     preemphasis_from: float = 50.0
     dynamic_compression: float = 0.10
+    interpolation: Literal["nearest", "bilinear", "bicubic"] = "bicubic"
     cmap: str = "Greys"
     pitch: bool = False
     formants: list[int] = field(default_factory=list)

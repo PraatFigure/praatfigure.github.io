@@ -24,6 +24,10 @@ The interface exposes the main display controls:
   noise more visible.
 - **Time step** and **Frequency step** control analysis-grid detail. Smaller
   values produce more cells but require more computation.
+- **Spectrogram smoothing** controls display interpolation. **Bicubic** is the
+  smooth Praat-like default, **Bilinear** is lighter smoothing, and **Nearest**
+  exposes the raw analysis cells. This setting does not invent additional
+  acoustic resolution; it only changes how adjacent cells are drawn.
 
 These operations affect visualization only; the source audio is never modified.
 Frequency ticks in hertz are shown by default. Spectrogram pixels use the
