@@ -39,6 +39,13 @@ Use the **Zoom** slider below the preview, or hold **Ctrl** and turn the mouse
 wheel over the figure, to magnify it from 25% to 400%. A value of 100% means
 the fitted size in **Fit to window** mode and the physical size in **Real size**
 mode. Right-click the preview to reset zoom or copy the complete figure.
+When the enlarged figure is bigger than the viewport, hold the left mouse
+button and drag the figure to pan horizontally or vertically. The cursor changes
+to an open hand whenever panning is available.
+
+PraatFigure remembers the last folder used for audio, TextGrid, project,
+template, or export files and starts the next file dialog there, including after
+the application is restarted.
 
 The in-app **Help** menu provides a compact guide to common operations.
 

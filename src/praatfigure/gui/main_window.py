@@ -6,7 +6,10 @@ import sys
 import unicodedata
 from pathlib import Path
 
-from PySide6.QtCore import QByteArray, QEvent, QMimeData, QObject, QRunnable, QThreadPool, QTimer, Qt, Signal
+from PySide6.QtCore import (
+    QByteArray, QEvent, QMimeData, QObject, QPoint, QRunnable, QSettings,
+    QThreadPool, QTimer, Qt, Signal,
+)
 from PySide6.QtGui import QFontDatabase, QImage
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
@@ -112,7 +115,18 @@ class MainWindow(QMainWindow):
         self.audio_path: str | None = None
         self.grid_path: str | None = None
         self._source_label: str | None = None
-        self._last_export_directory: str | None = None
+        self.settings = QSettings(
+            QSettings.IniFormat, QSettings.UserScope, "PraatFigure", "PraatFigure"
+        )
+        saved_directory = self.settings.value("paths/last_directory", "", type=str)
+        self._last_directory = (
+            saved_directory if saved_directory and Path(saved_directory).is_dir()
+            else str(Path.home())
+        )
+        self._pan_active = False
+        self._pan_source: QWidget | None = None
+        self._pan_origin = QPoint()
+        self._pan_scroll_origin = QPoint()
         self.spec: FigureSpec | None = None
         self.renderer = Renderer()
         self.current_figure = None
@@ -482,10 +496,22 @@ class MainWindow(QMainWindow):
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         return scroll
 
+    def _remember_directory(self, path: str | Path) -> None:
+        candidate = Path(path).expanduser()
+        directory = candidate if candidate.is_dir() else candidate.parent
+        if not directory.is_dir():
+            return
+        self._last_directory = str(directory.resolve())
+        self.settings.setValue("paths/last_directory", self._last_directory)
+        self.settings.sync()
+
     def open_audio(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "Open audio", "", "Audio (*.wav *.flac *.aiff *.mp3)")
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Open audio", self._last_directory, "Audio (*.wav *.flac *.aiff *.mp3)"
+        )
         if not path:
             return
+        self._remember_directory(path)
         try:
             self.audio = load_audio(path)
             self.audio_path = path
@@ -495,9 +521,13 @@ class MainWindow(QMainWindow):
             self._error(str(exc))
 
     def open_textgrid(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "Open TextGrid", "", "Praat TextGrid (*.TextGrid *.textgrid)")
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Open TextGrid", self._last_directory,
+            "Praat TextGrid (*.TextGrid *.textgrid)",
+        )
         if not path:
             return
+        self._remember_directory(path)
         try:
             self.grid = load_textgrid(path)
             self.grid_path = path
@@ -838,7 +868,53 @@ class MainWindow(QMainWindow):
                 self.preview_zoom.setValue(self.preview_zoom.value() + change)
                 event.accept()
                 return True
+        if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+            if self._preview_can_pan():
+                self._pan_active = True
+                self._pan_source = watched
+                self._pan_origin = event.globalPosition().toPoint()
+                self._pan_scroll_origin = QPoint(
+                    self.preview_scroll.horizontalScrollBar().value(),
+                    self.preview_scroll.verticalScrollBar().value(),
+                )
+                watched.grabMouse()
+                watched.setCursor(Qt.ClosedHandCursor)
+                event.accept()
+                return True
+        if event.type() == QEvent.MouseMove and self._pan_active:
+            delta = event.globalPosition().toPoint() - self._pan_origin
+            self.preview_scroll.horizontalScrollBar().setValue(
+                self._pan_scroll_origin.x() - delta.x()
+            )
+            self.preview_scroll.verticalScrollBar().setValue(
+                self._pan_scroll_origin.y() - delta.y()
+            )
+            event.accept()
+            return True
+        if event.type() == QEvent.MouseButtonRelease and self._pan_active:
+            if self._pan_source is not None:
+                self._pan_source.releaseMouse()
+            self._pan_active = False
+            self._pan_source = None
+            self._update_pan_cursor()
+            event.accept()
+            return True
         return super().eventFilter(watched, event)
+
+    def _preview_can_pan(self) -> bool:
+        if not hasattr(self, "preview_scroll"):
+            return False
+        return (
+            self.preview_scroll.horizontalScrollBar().maximum() > 0
+            or self.preview_scroll.verticalScrollBar().maximum() > 0
+        )
+
+    def _update_pan_cursor(self) -> None:
+        if not hasattr(self, "preview_scroll") or self._pan_active:
+            return
+        cursor = Qt.OpenHandCursor if self._preview_can_pan() else Qt.ArrowCursor
+        self.canvas.setCursor(cursor)
+        self.preview_scroll.viewport().setCursor(cursor)
 
     def _show_preview_context_menu(self, source: QWidget, position) -> None:
         menu = QMenu(self)
@@ -875,6 +951,7 @@ class MainWindow(QMainWindow):
         figure.set_size_inches(inches[0], inches[1], forward=False)
         self.canvas.setFixedSize(display_width, display_height)
         self.canvas.draw_idle()
+        QTimer.singleShot(0, self._update_pan_cursor)
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
@@ -898,8 +975,7 @@ class MainWindow(QMainWindow):
         if self._render_busy:
             self.status_label.setText("Wait for the current preview before exporting.")
             return
-        default_directory = self._last_export_directory or str(Path(self.audio_path).parent)
-        dialog = ExportDialog(self, default_directory, self._default_export_name())
+        dialog = ExportDialog(self, self._last_directory, self._default_export_name())
         if dialog.exec() != QDialog.Accepted:
             return
         destination = dialog.destination()
@@ -925,7 +1001,7 @@ class MainWindow(QMainWindow):
                 )
             finally:
                 plt.close(figure)
-            self._last_export_directory = str(destination.parent)
+            self._remember_directory(destination)
             self.status_label.setText(f"Exported {destination}")
         except Exception as exc:
             self._error(str(exc))
@@ -974,11 +1050,13 @@ class MainWindow(QMainWindow):
         if not self.spec:
             return
         path, _ = QFileDialog.getSaveFileName(
-            self, "Save settings template", "publication.praatfig-template.json",
+            self, "Save settings template",
+            str(Path(self._last_directory) / "publication.praatfig-template.json"),
             "PraatFigure templates (*.praatfig-template.json)",
         )
         if not path:
             return
+        self._remember_directory(path)
         try:
             self._apply_controls()
             style = self.spec.to_dict()
@@ -996,10 +1074,12 @@ class MainWindow(QMainWindow):
         if not self.spec:
             return
         path, _ = QFileDialog.getOpenFileName(
-            self, "Load settings template", "", "PraatFigure templates (*.praatfig-template.json)",
+            self, "Load settings template", self._last_directory,
+            "PraatFigure templates (*.praatfig-template.json)",
         )
         if not path:
             return
+        self._remember_directory(path)
         try:
             data = json.loads(Path(path).read_text(encoding="utf-8"))
             style = dict(data["figure_style"])
@@ -1059,9 +1139,12 @@ class MainWindow(QMainWindow):
     def save_project(self) -> None:
         if not self.spec or not self.audio_path or not self.grid_path:
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Save project", "example.praatfig.json",
-                                               "PraatFigure projects (*.praatfig.json)")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save project", str(Path(self._last_directory) / "example.praatfig.json"),
+            "PraatFigure projects (*.praatfig.json)",
+        )
         if path:
+            self._remember_directory(path)
             try:
                 self._apply_controls()
                 Project(self.audio_path, self.grid_path, self.spec).save(path)
@@ -1070,10 +1153,13 @@ class MainWindow(QMainWindow):
                 self._error(str(exc))
 
     def open_project(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "Open project", "",
-                                               "PraatFigure projects (*.praatfig.json)")
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Open project", self._last_directory,
+            "PraatFigure projects (*.praatfig.json)",
+        )
         if not path:
             return
+        self._remember_directory(path)
         try:
             project = Project.load(path)
             self.audio = load_audio(project.audio_path)
@@ -1120,8 +1206,9 @@ class MainWindow(QMainWindow):
             "markers, and line widths.\n"
             "• Real size uses the physical width and height configured for export; scroll if needed.\n\n"
             "Use the Zoom slider or Ctrl + mouse wheel over the preview to zoom from 25% "
-            "to 400%. Right-click the preview to reset zoom or copy the full figure as a "
-            "300 DPI PNG. The Copy PNG button provides the same command.\n\n"
+            "to 400%. When scroll bars are available, drag the figure with the left mouse "
+            "button to inspect another area. Right-click the preview to reset zoom or copy "
+            "the full figure as a 300 DPI PNG. The Copy PNG button provides the same command.\n\n"
             "Display controls choose endpoint/automatic time ticks, Hz ticks, tier names, "
             "target start/end labels, projected-boundary width, and separate "
             "base/annotation/axis font sizes plus any installed system font. Internal target "
@@ -1133,6 +1220,7 @@ class MainWindow(QMainWindow):
             "pre-emphasis, quiet-region normalization, and time/frequency grid detail. "
             "These settings change only the visualization, never the audio file.\n\n"
             "Export opens a dialog for filename, SVG/PDF/PNG format, DPI, and transparency. "
+            "File dialogs reopen in the last folder used, even after restarting the app. "
             "Use the Templates menu to save or apply all visual settings without changing "
             "the current annotation selection.",
         )

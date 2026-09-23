@@ -63,6 +63,8 @@ Font sizes, pitch/formant markers, and line widths therefore retain the same
 proportions at every Windows display scale. Use the zoom slider or **Ctrl + mouse
 wheel** over the preview for 25–400% magnification. The button below the preview
 and its right-click menu copy a freshly rendered 300 DPI PNG to the clipboard.
+Drag an enlarged preview with the left mouse button to inspect another area.
+File dialogs remember the last used folder across application restarts.
 
 PNG is the default export format. The appearance panel exposes installed system
 fonts and independent base, annotation, and axis sizes (axis defaults to 6 pt).
